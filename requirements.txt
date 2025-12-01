@@ -1,0 +1,14 @@
+# core
+requests
+beautifulsoup4
+aiohttp
+asyncio
+nest_asyncio
+python-dotenv
+
+# openai
+# google-cloud-aiplatform
+
+# dev / utils
+tqdm
+
