@@ -9,6 +9,12 @@ python-dotenv
 # openai
 # google-cloud-aiplatform
 
+#googleadk
+google-adk
+
 # dev / utils
 tqdm
+
+#server
+uvicorn[standard]
 
