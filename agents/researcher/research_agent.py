@@ -33,24 +33,42 @@ class ResearchAgent:
         self.logger.info("✅ ResearchAgent initialized.")
 
     async def run(self, query: str):
+        """
+        Runs a research query through Gemini ADK.
+        Output is normalized to structure expected by Coordinator + Evaluator.
+        """
         self.logger.info(f"🔍 Researching: {query}")
+
         try:
             response = await self.runner.run_debug(query)
 
-            # Handle different response types
+            # Handle ADK output forms (list or object)
             if isinstance(response, list):
                 results_list = response
                 summary_text = " ".join([str(r) for r in response])
             else:
-                results_list = getattr(response, "results", [str(response)])
-                summary_text = getattr(response, "summary", str(response))
+                results_list = (
+                    getattr(response, "results", None)
+                    or [str(response)]
+                )
+                summary_text = (
+                    getattr(response, "summary", None)
+                    or str(response)
+                )
 
             return {
+                "type": "research",        # REQUIRED FOR EVALUATOR
                 "query": query,
+                "output": summary_text,
                 "results": results_list,
-                "summary": summary_text,
             }
 
         except Exception as e:
-            self.logger.error(f"Gemini ADK call failed: {e}")
-            return {"query": query, "results": [], "summary": f"Failed to generate results: {e}"}
+            self.logger.error(f"❌ Gemini ADK call failed: {e}")
+
+            return {
+                "type": "research",
+                "query": query,
+                "output": f"Research failed: {e}",
+                "results": [],
+            }

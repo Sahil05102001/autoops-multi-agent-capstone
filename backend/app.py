@@ -1,3 +1,4 @@
+# app.py
 import sys
 import os
 import asyncio
@@ -37,7 +38,8 @@ class PromptRequest(BaseModel):
 @app.post("/ask")
 async def chat(req: PromptRequest):
     """
-    Accepts user prompt → sends to CoordinatorAgent → returns only first meaningful text
+    Accepts user prompt → sends to CoordinatorAgent → 
+    extracts first meaningful .output text.
     """
 
     coordinator = CoordinatorAgent(gemini_api_key=GEMINI_API_KEY)
@@ -45,27 +47,20 @@ async def chat(req: PromptRequest):
     try:
         response = await coordinator.run(req.prompt)
 
-        # Extract first meaningful text
         assistant_text = ""
+
+        # Extract best output from Coordinator results
         if isinstance(response, dict) and "results" in response:
             for res in response["results"]:
-                # Check for 'results' in res
-                if "results" in res:
-                    for r in res["results"]:
-                        if hasattr(r, "content") and hasattr(r.content, "parts"):
-                            for part in r.content.parts:
-                                if hasattr(part, "text") and part.text:
-                                    assistant_text = part.text
-                                    break
-                        if assistant_text:
-                            break
-                # If assistant_text found, break outer loop
-                if assistant_text:
-                    break
+                out = res.get("output", {})
+                if isinstance(out, dict) and "output" in out:
+                    assistant_text = out["output"]
+                    if assistant_text:
+                        break
 
-        # Fallback if nothing found
+        # Fallback
         if not assistant_text:
-            assistant_text = "No response from agent."
+            assistant_text = "No meaningful response from agents."
 
         return {"response": assistant_text.strip()}
 

@@ -2,7 +2,6 @@
 # Central configuration.
 import os
 
-SERPAPI_KEY = os.environ.get("SERPAPI_KEY", None)
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", None)
 
 # Add Gemini Flash API key

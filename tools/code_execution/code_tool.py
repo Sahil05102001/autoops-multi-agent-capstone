@@ -9,35 +9,52 @@ logger = get_logger("code_tool")
 
 def run_python_code(code: str, timeout: int = CODE_RUNNER_TIMEOUT) -> Dict:
     """
-    Writes code to a temp file and executes it via subprocess with a timeout.
-    Returns stdout, stderr, exit_code.
+    Runs Python code inside an isolated temporary file using subprocess.
+    Returns a dictionary:
+      - stdout: normal output
+      - stderr: errors (if any)
+      - returncode: 0 success, non-zero failure
     """
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        f.write(code)
-        fname = f.name
+
+    # Create temporary .py file
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as temp_file:
+        temp_file.write(code)
+        filename = temp_file.name
+
+    logger.info(f"[CodeTool] Executing code file: {filename}")
 
     try:
-        logger.info(f"[CodeTool] Executing code in temp file: {fname}")
-        proc = subprocess.run(
-            ["python", fname],
+        # Execute code
+        process = subprocess.run(
+            ["python", filename],
             capture_output=True,
             text=True,
             timeout=timeout,
         )
-        logger.info(f"[CodeTool] Execution completed with returncode={proc.returncode}")
-        return {"stdout": proc.stdout, "stderr": proc.stderr, "returncode": proc.returncode}
 
-    except subprocess.TimeoutExpired as te:
-        logger.warning(f"[CodeTool] Execution timed out after {timeout}s")
+        logger.info(
+            f"[CodeTool] Finished (exit={process.returncode}) "
+            f"stdout_length={len(process.stdout)}, stderr_length={len(process.stderr)}"
+        )
+
+        return {
+            "stdout": process.stdout,
+            "stderr": process.stderr,
+            "returncode": process.returncode,
+        }
+
+    except subprocess.TimeoutExpired:
+        logger.warning(f"[CodeTool] Timeout after {timeout} seconds")
         return {"stdout": "", "stderr": f"Timed out after {timeout}s", "returncode": -1}
 
     except Exception as e:
-        logger.error(f"[CodeTool] Execution failed: {e}")
+        logger.error(f"[CodeTool] Unexpected error: {e}")
         return {"stdout": "", "stderr": str(e), "returncode": -2}
 
     finally:
+        # Cleanup temp file
         try:
-            os.remove(fname)
-            logger.info(f"[CodeTool] Temp file removed: {fname}")
+            os.remove(filename)
+            logger.info(f"[CodeTool] Removed temp file: {filename}")
         except OSError:
-            logger.warning(f"[CodeTool] Failed to remove temp file: {fname}")
+            logger.warning(f"[CodeTool] Could not delete temp file: {filename}")
