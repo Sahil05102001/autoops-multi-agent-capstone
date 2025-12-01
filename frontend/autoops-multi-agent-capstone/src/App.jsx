@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import ChatMessage from "./components/ChatMessage";
+import SocialLinks from "./components/SocialLinks";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
@@ -68,7 +69,7 @@ export default function App() {
       <header className="topbar">
         <div className="title">AutoOps — Agent Chat</div>
       </header>
-
+            <SocialLinks/>
       <main className="chat-area">
         <div className="messages">
           {messages.map((m) => (

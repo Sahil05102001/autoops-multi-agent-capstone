@@ -1,0 +1,21 @@
+.social-links {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 10px 0;
+  background: rgba(255, 255, 255, 0.6);
+  border-top: 1px solid #e6eef6;
+  backdrop-filter: blur(6px);
+}
+
+.social-links a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.social-links a:hover {
+  color: #005bb5;
+  transform: scale(1.05);
+}
